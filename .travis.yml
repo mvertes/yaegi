@@ -1,3 +1,7 @@
+arch:
+  - amd64
+  - arm64
+
 language: go
 
 dist: xenial
@@ -19,6 +23,10 @@ cache:
 matrix:
   fast_finish: true
   include:
+    - os: linux
+      arch: amd64
+    - os: linux
+      arch: arm64
     - go: 1.12.x
     - go: 1.13.x
       env: STABLE=true
