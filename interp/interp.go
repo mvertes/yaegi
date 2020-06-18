@@ -8,12 +8,14 @@ import (
 	"go/scanner"
 	"go/token"
 	"io"
+	"log"
 	"os"
 	"os/signal"
 	"reflect"
 	"runtime"
 	"runtime/debug"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 )
@@ -102,6 +104,24 @@ type Exports map[string]map[string]reflect.Value
 // imports stores the map of source packages per package path
 type imports map[string]map[string]*symbol
 
+// binWrap stores the map of binary interface wrappers indexed per method signature.
+type binWrap map[string][]reflect.Type
+
+type method struct {
+	name  string
+	node  *node
+	index []int
+}
+
+// wrapperTypeMethod stores a dynamic interpreter wrapper type, methods and indexes.
+type wrapperTypeMethod struct {
+	typ    reflect.Type
+	method [][]*method
+}
+
+// wrappers stores the map of dynamic interpreter wrappers index by itype
+type wrappers map[*itype]*wrapperTypeMethod
+
 // opt stores interpreter options
 type opt struct {
 	astDot bool // display AST graph (debug)
@@ -132,12 +152,14 @@ type Interpreter struct {
 	rdir       map[string]bool // for src import cycle detection
 
 	mutex    sync.RWMutex
+	done     chan struct{}     // for cancellation of channel operations
 	frame    *frame            // program data storage during execution
 	universe *scope            // interpreter global level scope
 	scopes   map[string]*scope // package level scopes, indexed by package name
 	srcPkg   imports           // source packages used in interpreter, indexed by path
 	pkgNames map[string]string // package names, indexed by path
-	done     chan struct{}     // for cancellation of channel operations
+	binWrap  binWrap           // binary wrappers indexed by method signature
+	wrappers wrappers          // generated interface wrappers, indexed by interpreter type
 }
 
 const (
@@ -206,16 +228,19 @@ type Options struct {
 
 // New returns a new interpreter
 func New(options Options) *Interpreter {
+	ev := reflect.ValueOf((*_error)(nil))
 	i := Interpreter{
 		opt:      opt{context: build.Default},
 		frame:    &frame{data: []reflect.Value{}},
 		fset:     token.NewFileSet(),
 		universe: initUniverse(),
 		scopes:   map[string]*scope{},
-		binPkg:   Exports{"": map[string]reflect.Value{"_error": reflect.ValueOf((*_error)(nil))}},
+		binPkg:   Exports{"": map[string]reflect.Value{"_error": ev}},
 		srcPkg:   imports{},
 		pkgNames: map[string]string{},
 		rdir:     map[string]bool{},
+		binWrap:  binWrap{"Error() string": []reflect.Type{ev.Type().Elem()}},
+		wrappers: wrappers{},
 	}
 
 	i.opt.context.GOPATH = options.GoPath
@@ -462,11 +487,63 @@ func (interp *Interpreter) getWrapper(t reflect.Type) reflect.Type {
 	return nil
 }
 
+// getBinWraps returns an array of binary interface wrappers for the corresponding type.
+func (interp *Interpreter) getBinWraps(t *itype) (r []reflect.Type) {
+	methods := t.methods()
+	for k, v := range methods {
+		for _, it := range interp.binWrap[k+v] {
+			if methods.containsR(it) {
+				r = append(r, it)
+				break
+			}
+		}
+	}
+	return r
+}
+
+// wrapperTypeMethod returns a wrapper type implementing the t methods.
+func (interp *Interpreter) getWrapperTypeMethod(t *itype) *wrapperTypeMethod {
+	if rt, ok := interp.wrappers[t]; ok {
+		return rt
+	}
+	fields := []reflect.StructField{}
+	methods := [][]*method{}
+	for i, w := range interp.getBinWraps(t) {
+		fields = append(fields, reflect.StructField{Name: "F" + strconv.Itoa(i), Type: w, Anonymous: true})
+		nf := w.NumField()
+		mm := []*method{}
+		for j := 0; j < nf; j++ {
+			name := strings.TrimPrefix(w.Field(j).Name, "W")
+			m, ind := t.lookupMethod(name)
+			mm = append(mm, &method{name, m, ind})
+		}
+		methods = append(methods, mm)
+	}
+	log.Println("getWrapperTypeMethod", t.name, fields)
+	rt := &wrapperTypeMethod{reflect.StructOf(fields), methods}
+	interp.wrappers[t] = rt
+	return rt
+}
+
 // Use loads binary runtime symbols in the interpreter context so
-// they can be used in interpreted code
+// they can be used in interpreted code.
 func (interp *Interpreter) Use(values Exports) {
 	for k, v := range values {
 		interp.binPkg[k] = v
+		// Fill the dictionnary of binary interface wrappers
+		for id, val := range v {
+			if !strings.HasPrefix(id, "_") {
+				continue
+			}
+			t := val.Type().Elem()
+			it := v[strings.TrimPrefix(id, "_")].Type().Elem()
+			nm := it.NumMethod()
+			for i := 0; i < nm; i++ {
+				m := it.Method(i)
+				name := m.Name + m.Type.String()
+				interp.binWrap[name] = append(interp.binWrap[name], t)
+			}
+		}
 	}
 }
 
