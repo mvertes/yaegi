@@ -661,6 +661,25 @@ func genFunctionWrapper(n *node) func(*frame) reflect.Value {
 	}
 }
 
+func genWrapper(n *node) func(*frame) reflect.Value {
+	value := genValue(n)
+	switch n.typ.cat {
+	case intT, valueT:
+		return value
+	}
+	log.Println(n.cfgErrorf("genWrapper"), n.typ.name, n.typ.cat, n.typ.TypeOf())
+	wt := n.interp.wrapperType()
+
+	return func(f *frame) reflect.Value {
+		nod := *n
+		nod.frame = f
+		v := reflect.ValueOf(valueInterface{&nod, value(f)})
+		w := reflect.New(wt).Elem()
+		w.Field(0).Set(reflect.ValueOf(v))
+		return w
+	}
+}
+
 func genInterfaceWrapper(n *node, typ reflect.Type) func(*frame) reflect.Value {
 	value := genValue(n)
 	if typ == nil || typ.Kind() != reflect.Interface || typ.NumMethod() == 0 || n.typ.cat == valueT {
@@ -1038,7 +1057,9 @@ func callBin(n *node) {
 					values = append(values, genInterfaceWrapper(c, defType))
 				}
 			default:
-				values = append(values, genInterfaceWrapper(c, defType))
+				//values = append(values, genInterfaceWrapper(c, defType))
+				log.Println(n.cfgErrorf("callBin"))
+				values = append(values, genWrapper(c))
 			}
 		}
 	}

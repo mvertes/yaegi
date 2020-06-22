@@ -7,6 +7,8 @@ package stdlib
 import (
 	"container/heap"
 	"reflect"
+
+	"github.com/containous/yaegi/interp"
 )
 
 func init() {
@@ -20,23 +22,25 @@ func init() {
 
 		// type definitions
 		"Interface": reflect.ValueOf((*heap.Interface)(nil)),
-
-		// interface wrapper definitions
-		"_Interface": reflect.ValueOf((*_container_heap_Interface)(nil)),
 	}
 }
-
-// _container_heap_Interface is an interface wrapper for Interface type
-type _container_heap_Interface struct {
-	WLen  func() int
-	WLess func(i int, j int) bool
-	WPop  func() interface{}
-	WPush func(x interface{})
-	WSwap func(i int, j int)
+func (_w Wrapper) Len() int {
+	_f := interp.Method("Len", _w.Wrap).(func() int)
+	return _f()
 }
-
-func (W _container_heap_Interface) Len() int               { return W.WLen() }
-func (W _container_heap_Interface) Less(i int, j int) bool { return W.WLess(i, j) }
-func (W _container_heap_Interface) Pop() interface{}       { return W.WPop() }
-func (W _container_heap_Interface) Push(x interface{})     { W.WPush(x) }
-func (W _container_heap_Interface) Swap(i int, j int)      { W.WSwap(i, j) }
+func (_w Wrapper) Less(i int, j int) bool {
+	_f := interp.Method("Less", _w.Wrap).(func(i int, j int) bool)
+	return _f(i, j)
+}
+func (_w Wrapper) Pop() interface{} {
+	_f := interp.Method("Pop", _w.Wrap).(func() interface{})
+	return _f()
+}
+func (_w Wrapper) Push(x interface{}) {
+	_f := interp.Method("Push", _w.Wrap).(func(x interface{}))
+	_f(x)
+}
+func (_w Wrapper) Swap(i int, j int) {
+	_f := interp.Method("Swap", _w.Wrap).(func(i int, j int))
+	_f(i, j)
+}

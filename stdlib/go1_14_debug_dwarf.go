@@ -7,6 +7,8 @@ package stdlib
 import (
 	"debug/dwarf"
 	"reflect"
+
+	"github.com/containous/yaegi/interp"
 )
 
 func init() {
@@ -263,19 +265,17 @@ func init() {
 		"UnspecifiedType": reflect.ValueOf((*dwarf.UnspecifiedType)(nil)),
 		"UnsupportedType": reflect.ValueOf((*dwarf.UnsupportedType)(nil)),
 		"VoidType":        reflect.ValueOf((*dwarf.VoidType)(nil)),
-
-		// interface wrapper definitions
-		"_Type": reflect.ValueOf((*_debug_dwarf_Type)(nil)),
 	}
 }
-
-// _debug_dwarf_Type is an interface wrapper for Type type
-type _debug_dwarf_Type struct {
-	WCommon func() *dwarf.CommonType
-	WSize   func() int64
-	WString func() string
+func (_w Wrapper) Common() *dwarf.CommonType {
+	_f := interp.Method("Common", _w.Wrap).(func() *dwarf.CommonType)
+	return _f()
 }
-
-func (W _debug_dwarf_Type) Common() *dwarf.CommonType { return W.WCommon() }
-func (W _debug_dwarf_Type) Size() int64               { return W.WSize() }
-func (W _debug_dwarf_Type) String() string            { return W.WString() }
+func (_w Wrapper) Size() int64 {
+	_f := interp.Method("Size", _w.Wrap).(func() int64)
+	return _f()
+}
+func (_w Wrapper) String() string {
+	_f := interp.Method("String", _w.Wrap).(func() string)
+	return _f()
+}

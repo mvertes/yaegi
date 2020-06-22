@@ -7,6 +7,8 @@ package stdlib
 import (
 	"flag"
 	"reflect"
+
+	"github.com/containous/yaegi/interp"
 )
 
 func init() {
@@ -55,29 +57,9 @@ func init() {
 		"FlagSet":       reflect.ValueOf((*flag.FlagSet)(nil)),
 		"Getter":        reflect.ValueOf((*flag.Getter)(nil)),
 		"Value":         reflect.ValueOf((*flag.Value)(nil)),
-
-		// interface wrapper definitions
-		"_Getter": reflect.ValueOf((*_flag_Getter)(nil)),
-		"_Value":  reflect.ValueOf((*_flag_Value)(nil)),
 	}
 }
-
-// _flag_Getter is an interface wrapper for Getter type
-type _flag_Getter struct {
-	WGet    func() interface{}
-	WSet    func(a0 string) error
-	WString func() string
+func (_w Wrapper) Set(a0 string) error {
+	_f := interp.Method("Set", _w.Wrap).(func(a0 string) error)
+	return _f(a0)
 }
-
-func (W _flag_Getter) Get() interface{}    { return W.WGet() }
-func (W _flag_Getter) Set(a0 string) error { return W.WSet(a0) }
-func (W _flag_Getter) String() string      { return W.WString() }
-
-// _flag_Value is an interface wrapper for Value type
-type _flag_Value struct {
-	WSet    func(a0 string) error
-	WString func() string
-}
-
-func (W _flag_Value) Set(a0 string) error { return W.WSet(a0) }
-func (W _flag_Value) String() string      { return W.WString() }

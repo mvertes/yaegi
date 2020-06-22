@@ -7,6 +7,8 @@ package stdlib
 import (
 	"encoding/json"
 	"reflect"
+
+	"github.com/containous/yaegi/interp"
 )
 
 func init() {
@@ -39,28 +41,14 @@ func init() {
 		"Unmarshaler":           reflect.ValueOf((*json.Unmarshaler)(nil)),
 		"UnsupportedTypeError":  reflect.ValueOf((*json.UnsupportedTypeError)(nil)),
 		"UnsupportedValueError": reflect.ValueOf((*json.UnsupportedValueError)(nil)),
-
-		// interface wrapper definitions
-		"_Marshaler":   reflect.ValueOf((*_encoding_json_Marshaler)(nil)),
-		"_Token":       reflect.ValueOf((*_encoding_json_Token)(nil)),
-		"_Unmarshaler": reflect.ValueOf((*_encoding_json_Unmarshaler)(nil)),
 	}
 }
-
-// _encoding_json_Marshaler is an interface wrapper for Marshaler type
-type _encoding_json_Marshaler struct {
-	WMarshalJSON func() ([]byte, error)
+func (_w Wrapper) MarshalJSON() ([]byte, error) {
+	_f := interp.Method("MarshalJSON", _w.Wrap).(func() ([]byte, error))
+	return _f()
 }
 
-func (W _encoding_json_Marshaler) MarshalJSON() ([]byte, error) { return W.WMarshalJSON() }
-
-// _encoding_json_Token is an interface wrapper for Token type
-type _encoding_json_Token struct {
+func (_w Wrapper) UnmarshalJSON(a0 []byte) error {
+	_f := interp.Method("UnmarshalJSON", _w.Wrap).(func(a0 []byte) error)
+	return _f(a0)
 }
-
-// _encoding_json_Unmarshaler is an interface wrapper for Unmarshaler type
-type _encoding_json_Unmarshaler struct {
-	WUnmarshalJSON func(a0 []byte) error
-}
-
-func (W _encoding_json_Unmarshaler) UnmarshalJSON(a0 []byte) error { return W.WUnmarshalJSON(a0) }

@@ -55,6 +55,9 @@ import (
 {{- end}}
 	"{{.PkgName}}"
 	"reflect"
+{{if .ImportInterp}}
+    "github.com/containous/yaegi/interp"
+{{- end}}
 )
 
 func init() {
@@ -77,23 +80,14 @@ func init() {
 		{{end}}
 
 		{{- end}}
-		{{- if .Wrap}}
-		// interface wrapper definitions
-		{{range $key, $value := .Wrap -}}
-			"_{{$key}}": reflect.ValueOf((*{{$value.Name}})(nil)),
-		{{end}}
-		{{- end}}
 	}
 }
 {{range $key, $value := .Wrap -}}
-	// {{$value.Name}} is an interface wrapper for {{$key}} type
-	type {{$value.Name}} struct {
-		{{range $m := $value.Method -}}
-		W{{$m.Name}} func{{$m.Param}} {{$m.Result}}
-		{{end}}
-	}
 	{{range $m := $value.Method -}}
-		func (W {{$value.Name}}) {{$m.Name}}{{$m.Param}} {{$m.Result}} { {{$m.Ret}} W.W{{$m.Name}}{{$m.Arg}} }
+		func (_w Wrapper) {{$m.Name}}{{$m.Param}} {{$m.Result}} {
+			_f := interp.Method("{{$m.Name}}", _w.Wrap).(func{{$m.Param}} {{$m.Result}})
+			{{$m.Ret}} _f{{$m.Arg}}
+		}
 	{{end}}
 {{end}}
 `
@@ -128,6 +122,7 @@ func genContent(dest, pkgName, license string) ([]byte, error) {
 	val := map[string]Val{}
 	wrap := map[string]Wrap{}
 	imports := map[string]bool{}
+	importInterp := false
 	sc := p.Scope()
 
 	for _, pkg := range p.Imports() {
@@ -165,7 +160,7 @@ func genContent(dest, pkgName, license string) ([]byte, error) {
 				var methods []Method
 				for i := 0; i < t.NumMethods(); i++ {
 					f := t.Method(i)
-					if !f.Exported() {
+					if !f.Exported() || isWrapDefined(f.Name()) {
 						continue
 					}
 
@@ -195,6 +190,7 @@ func genContent(dest, pkgName, license string) ([]byte, error) {
 					}
 
 					methods = append(methods, Method{f.Name(), param, result, arg, ret})
+					importInterp = true
 				}
 				wrap[name] = Wrap{prefix + name, methods}
 			}
@@ -231,14 +227,15 @@ func genContent(dest, pkgName, license string) ([]byte, error) {
 
 	b := new(bytes.Buffer)
 	data := map[string]interface{}{
-		"Dest":      dest,
-		"Imports":   imports,
-		"PkgName":   pkgName,
-		"Val":       val,
-		"Typ":       typ,
-		"Wrap":      wrap,
-		"BuildTags": buildTags,
-		"License":   license,
+		"Dest":         dest,
+		"Imports":      imports,
+		"PkgName":      pkgName,
+		"Val":          val,
+		"Typ":          typ,
+		"Wrap":         wrap,
+		"BuildTags":    buildTags,
+		"License":      license,
+		"ImportInterp": importInterp,
 	}
 	err = parse.Execute(b, data)
 	if err != nil {
@@ -375,4 +372,23 @@ func getMinor(part string) string {
 	}
 
 	return minor
+}
+
+const wrapdef = "/tmp/wrapdef"
+
+func isWrapDefined(name string) bool {
+	var content string
+	buf, err := ioutil.ReadFile(wrapdef)
+	if err == nil {
+		content = string(buf)
+		words := strings.Split(content, "\n")
+		for _, w := range words {
+			if w == name {
+				return true
+			}
+		}
+	}
+	content += name + "\n"
+	ioutil.WriteFile(wrapdef, []byte(content), 0644)
+	return false
 }

@@ -10,6 +10,8 @@ import (
 	"os"
 	"reflect"
 	"time"
+
+	"github.com/containous/yaegi/interp"
 )
 
 func init() {
@@ -122,35 +124,26 @@ func init() {
 		"ProcessState": reflect.ValueOf((*os.ProcessState)(nil)),
 		"Signal":       reflect.ValueOf((*os.Signal)(nil)),
 		"SyscallError": reflect.ValueOf((*os.SyscallError)(nil)),
-
-		// interface wrapper definitions
-		"_FileInfo": reflect.ValueOf((*_os_FileInfo)(nil)),
-		"_Signal":   reflect.ValueOf((*_os_Signal)(nil)),
 	}
 }
-
-// _os_FileInfo is an interface wrapper for FileInfo type
-type _os_FileInfo struct {
-	WIsDir   func() bool
-	WModTime func() time.Time
-	WMode    func() os.FileMode
-	WName    func() string
-	WSize    func() int64
-	WSys     func() interface{}
+func (_w Wrapper) IsDir() bool {
+	_f := interp.Method("IsDir", _w.Wrap).(func() bool)
+	return _f()
+}
+func (_w Wrapper) ModTime() time.Time {
+	_f := interp.Method("ModTime", _w.Wrap).(func() time.Time)
+	return _f()
+}
+func (_w Wrapper) Mode() os.FileMode {
+	_f := interp.Method("Mode", _w.Wrap).(func() os.FileMode)
+	return _f()
+}
+func (_w Wrapper) Sys() interface{} {
+	_f := interp.Method("Sys", _w.Wrap).(func() interface{})
+	return _f()
 }
 
-func (W _os_FileInfo) IsDir() bool        { return W.WIsDir() }
-func (W _os_FileInfo) ModTime() time.Time { return W.WModTime() }
-func (W _os_FileInfo) Mode() os.FileMode  { return W.WMode() }
-func (W _os_FileInfo) Name() string       { return W.WName() }
-func (W _os_FileInfo) Size() int64        { return W.WSize() }
-func (W _os_FileInfo) Sys() interface{}   { return W.WSys() }
-
-// _os_Signal is an interface wrapper for Signal type
-type _os_Signal struct {
-	WSignal func()
-	WString func() string
+func (_w Wrapper) Signal() {
+	_f := interp.Method("Signal", _w.Wrap).(func())
+	_f()
 }
-
-func (W _os_Signal) Signal()        { W.WSignal() }
-func (W _os_Signal) String() string { return W.WString() }

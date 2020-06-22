@@ -7,6 +7,8 @@ package stdlib
 import (
 	"encoding/xml"
 	"reflect"
+
+	"github.com/containous/yaegi/interp"
 )
 
 func init() {
@@ -46,60 +48,29 @@ func init() {
 		"Unmarshaler":          reflect.ValueOf((*xml.Unmarshaler)(nil)),
 		"UnmarshalerAttr":      reflect.ValueOf((*xml.UnmarshalerAttr)(nil)),
 		"UnsupportedTypeError": reflect.ValueOf((*xml.UnsupportedTypeError)(nil)),
-
-		// interface wrapper definitions
-		"_Marshaler":       reflect.ValueOf((*_encoding_xml_Marshaler)(nil)),
-		"_MarshalerAttr":   reflect.ValueOf((*_encoding_xml_MarshalerAttr)(nil)),
-		"_Token":           reflect.ValueOf((*_encoding_xml_Token)(nil)),
-		"_TokenReader":     reflect.ValueOf((*_encoding_xml_TokenReader)(nil)),
-		"_Unmarshaler":     reflect.ValueOf((*_encoding_xml_Unmarshaler)(nil)),
-		"_UnmarshalerAttr": reflect.ValueOf((*_encoding_xml_UnmarshalerAttr)(nil)),
 	}
 }
-
-// _encoding_xml_Marshaler is an interface wrapper for Marshaler type
-type _encoding_xml_Marshaler struct {
-	WMarshalXML func(e *xml.Encoder, start xml.StartElement) error
+func (_w Wrapper) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	_f := interp.Method("MarshalXML", _w.Wrap).(func(e *xml.Encoder, start xml.StartElement) error)
+	return _f(e, start)
 }
 
-func (W _encoding_xml_Marshaler) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	return W.WMarshalXML(e, start)
+func (_w Wrapper) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
+	_f := interp.Method("MarshalXMLAttr", _w.Wrap).(func(name xml.Name) (xml.Attr, error))
+	return _f(name)
 }
 
-// _encoding_xml_MarshalerAttr is an interface wrapper for MarshalerAttr type
-type _encoding_xml_MarshalerAttr struct {
-	WMarshalXMLAttr func(name xml.Name) (xml.Attr, error)
+func (_w Wrapper) Token() (xml.Token, error) {
+	_f := interp.Method("Token", _w.Wrap).(func() (xml.Token, error))
+	return _f()
 }
 
-func (W _encoding_xml_MarshalerAttr) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
-	return W.WMarshalXMLAttr(name)
+func (_w Wrapper) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	_f := interp.Method("UnmarshalXML", _w.Wrap).(func(d *xml.Decoder, start xml.StartElement) error)
+	return _f(d, start)
 }
 
-// _encoding_xml_Token is an interface wrapper for Token type
-type _encoding_xml_Token struct {
-}
-
-// _encoding_xml_TokenReader is an interface wrapper for TokenReader type
-type _encoding_xml_TokenReader struct {
-	WToken func() (xml.Token, error)
-}
-
-func (W _encoding_xml_TokenReader) Token() (xml.Token, error) { return W.WToken() }
-
-// _encoding_xml_Unmarshaler is an interface wrapper for Unmarshaler type
-type _encoding_xml_Unmarshaler struct {
-	WUnmarshalXML func(d *xml.Decoder, start xml.StartElement) error
-}
-
-func (W _encoding_xml_Unmarshaler) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	return W.WUnmarshalXML(d, start)
-}
-
-// _encoding_xml_UnmarshalerAttr is an interface wrapper for UnmarshalerAttr type
-type _encoding_xml_UnmarshalerAttr struct {
-	WUnmarshalXMLAttr func(attr xml.Attr) error
-}
-
-func (W _encoding_xml_UnmarshalerAttr) UnmarshalXMLAttr(attr xml.Attr) error {
-	return W.WUnmarshalXMLAttr(attr)
+func (_w Wrapper) UnmarshalXMLAttr(attr xml.Attr) error {
+	_f := interp.Method("UnmarshalXMLAttr", _w.Wrap).(func(attr xml.Attr) error)
+	return _f(attr)
 }

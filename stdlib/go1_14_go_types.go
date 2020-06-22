@@ -5,9 +5,10 @@
 package stdlib
 
 import (
-	"go/token"
 	"go/types"
 	"reflect"
+
+	"github.com/containous/yaegi/interp"
 )
 
 func init() {
@@ -150,71 +151,57 @@ func init() {
 		"TypeAndValue":  reflect.ValueOf((*types.TypeAndValue)(nil)),
 		"TypeName":      reflect.ValueOf((*types.TypeName)(nil)),
 		"Var":           reflect.ValueOf((*types.Var)(nil)),
-
-		// interface wrapper definitions
-		"_Importer":     reflect.ValueOf((*_go_types_Importer)(nil)),
-		"_ImporterFrom": reflect.ValueOf((*_go_types_ImporterFrom)(nil)),
-		"_Object":       reflect.ValueOf((*_go_types_Object)(nil)),
-		"_Sizes":        reflect.ValueOf((*_go_types_Sizes)(nil)),
-		"_Type":         reflect.ValueOf((*_go_types_Type)(nil)),
 	}
 }
-
-// _go_types_Importer is an interface wrapper for Importer type
-type _go_types_Importer struct {
-	WImport func(path string) (*types.Package, error)
+func (_w Wrapper) Import(path string) (*types.Package, error) {
+	_f := interp.Method("Import", _w.Wrap).(func(path string) (*types.Package, error))
+	return _f(path)
 }
 
-func (W _go_types_Importer) Import(path string) (*types.Package, error) { return W.WImport(path) }
-
-// _go_types_ImporterFrom is an interface wrapper for ImporterFrom type
-type _go_types_ImporterFrom struct {
-	WImport     func(path string) (*types.Package, error)
-	WImportFrom func(path string, dir string, mode types.ImportMode) (*types.Package, error)
+func (_w Wrapper) ImportFrom(path string, dir string, mode types.ImportMode) (*types.Package, error) {
+	_f := interp.Method("ImportFrom", _w.Wrap).(func(path string, dir string, mode types.ImportMode) (*types.Package, error))
+	return _f(path, dir, mode)
 }
 
-func (W _go_types_ImporterFrom) Import(path string) (*types.Package, error) { return W.WImport(path) }
-func (W _go_types_ImporterFrom) ImportFrom(path string, dir string, mode types.ImportMode) (*types.Package, error) {
-	return W.WImportFrom(path, dir, mode)
+func (_w Wrapper) Exported() bool {
+	_f := interp.Method("Exported", _w.Wrap).(func() bool)
+	return _f()
+}
+func (_w Wrapper) Id() string {
+	_f := interp.Method("Id", _w.Wrap).(func() string)
+	return _f()
+}
+func (_w Wrapper) Name() string {
+	_f := interp.Method("Name", _w.Wrap).(func() string)
+	return _f()
+}
+func (_w Wrapper) Parent() *types.Scope {
+	_f := interp.Method("Parent", _w.Wrap).(func() *types.Scope)
+	return _f()
+}
+func (_w Wrapper) Pkg() *types.Package {
+	_f := interp.Method("Pkg", _w.Wrap).(func() *types.Package)
+	return _f()
+}
+func (_w Wrapper) Type() types.Type {
+	_f := interp.Method("Type", _w.Wrap).(func() types.Type)
+	return _f()
 }
 
-// _go_types_Object is an interface wrapper for Object type
-type _go_types_Object struct {
-	WExported func() bool
-	WId       func() string
-	WName     func() string
-	WParent   func() *types.Scope
-	WPkg      func() *types.Package
-	WPos      func() token.Pos
-	WString   func() string
-	WType     func() types.Type
+func (_w Wrapper) Alignof(T types.Type) int64 {
+	_f := interp.Method("Alignof", _w.Wrap).(func(T types.Type) int64)
+	return _f(T)
+}
+func (_w Wrapper) Offsetsof(fields []*types.Var) []int64 {
+	_f := interp.Method("Offsetsof", _w.Wrap).(func(fields []*types.Var) []int64)
+	return _f(fields)
+}
+func (_w Wrapper) Sizeof(T types.Type) int64 {
+	_f := interp.Method("Sizeof", _w.Wrap).(func(T types.Type) int64)
+	return _f(T)
 }
 
-func (W _go_types_Object) Exported() bool       { return W.WExported() }
-func (W _go_types_Object) Id() string           { return W.WId() }
-func (W _go_types_Object) Name() string         { return W.WName() }
-func (W _go_types_Object) Parent() *types.Scope { return W.WParent() }
-func (W _go_types_Object) Pkg() *types.Package  { return W.WPkg() }
-func (W _go_types_Object) Pos() token.Pos       { return W.WPos() }
-func (W _go_types_Object) String() string       { return W.WString() }
-func (W _go_types_Object) Type() types.Type     { return W.WType() }
-
-// _go_types_Sizes is an interface wrapper for Sizes type
-type _go_types_Sizes struct {
-	WAlignof   func(T types.Type) int64
-	WOffsetsof func(fields []*types.Var) []int64
-	WSizeof    func(T types.Type) int64
+func (_w Wrapper) Underlying() types.Type {
+	_f := interp.Method("Underlying", _w.Wrap).(func() types.Type)
+	return _f()
 }
-
-func (W _go_types_Sizes) Alignof(T types.Type) int64            { return W.WAlignof(T) }
-func (W _go_types_Sizes) Offsetsof(fields []*types.Var) []int64 { return W.WOffsetsof(fields) }
-func (W _go_types_Sizes) Sizeof(T types.Type) int64             { return W.WSizeof(T) }
-
-// _go_types_Type is an interface wrapper for Type type
-type _go_types_Type struct {
-	WString     func() string
-	WUnderlying func() types.Type
-}
-
-func (W _go_types_Type) String() string         { return W.WString() }
-func (W _go_types_Type) Underlying() types.Type { return W.WUnderlying() }

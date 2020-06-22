@@ -7,6 +7,8 @@ package stdlib
 import (
 	"reflect"
 	"runtime"
+
+	"github.com/containous/yaegi/interp"
 )
 
 func init() {
@@ -60,17 +62,9 @@ func init() {
 		"MemStats":           reflect.ValueOf((*runtime.MemStats)(nil)),
 		"StackRecord":        reflect.ValueOf((*runtime.StackRecord)(nil)),
 		"TypeAssertionError": reflect.ValueOf((*runtime.TypeAssertionError)(nil)),
-
-		// interface wrapper definitions
-		"_Error": reflect.ValueOf((*_runtime_Error)(nil)),
 	}
 }
-
-// _runtime_Error is an interface wrapper for Error type
-type _runtime_Error struct {
-	WError        func() string
-	WRuntimeError func()
+func (_w Wrapper) RuntimeError() {
+	_f := interp.Method("RuntimeError", _w.Wrap).(func())
+	_f()
 }
-
-func (W _runtime_Error) Error() string { return W.WError() }
-func (W _runtime_Error) RuntimeError() { W.WRuntimeError() }

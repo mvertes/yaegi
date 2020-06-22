@@ -9,6 +9,8 @@ import (
 	"image/color"
 	"image/draw"
 	"reflect"
+
+	"github.com/containous/yaegi/interp"
 )
 
 func init() {
@@ -25,41 +27,14 @@ func init() {
 		"Image":     reflect.ValueOf((*draw.Image)(nil)),
 		"Op":        reflect.ValueOf((*draw.Op)(nil)),
 		"Quantizer": reflect.ValueOf((*draw.Quantizer)(nil)),
-
-		// interface wrapper definitions
-		"_Drawer":    reflect.ValueOf((*_image_draw_Drawer)(nil)),
-		"_Image":     reflect.ValueOf((*_image_draw_Image)(nil)),
-		"_Quantizer": reflect.ValueOf((*_image_draw_Quantizer)(nil)),
 	}
 }
-
-// _image_draw_Drawer is an interface wrapper for Drawer type
-type _image_draw_Drawer struct {
-	WDraw func(dst draw.Image, r image.Rectangle, src image.Image, sp image.Point)
+func (_w Wrapper) Draw(dst draw.Image, r image.Rectangle, src image.Image, sp image.Point) {
+	_f := interp.Method("Draw", _w.Wrap).(func(dst draw.Image, r image.Rectangle, src image.Image, sp image.Point))
+	_f(dst, r, src, sp)
 }
 
-func (W _image_draw_Drawer) Draw(dst draw.Image, r image.Rectangle, src image.Image, sp image.Point) {
-	W.WDraw(dst, r, src, sp)
-}
-
-// _image_draw_Image is an interface wrapper for Image type
-type _image_draw_Image struct {
-	WAt         func(x int, y int) color.Color
-	WBounds     func() image.Rectangle
-	WColorModel func() color.Model
-	WSet        func(x int, y int, c color.Color)
-}
-
-func (W _image_draw_Image) At(x int, y int) color.Color     { return W.WAt(x, y) }
-func (W _image_draw_Image) Bounds() image.Rectangle         { return W.WBounds() }
-func (W _image_draw_Image) ColorModel() color.Model         { return W.WColorModel() }
-func (W _image_draw_Image) Set(x int, y int, c color.Color) { W.WSet(x, y, c) }
-
-// _image_draw_Quantizer is an interface wrapper for Quantizer type
-type _image_draw_Quantizer struct {
-	WQuantize func(p color.Palette, m image.Image) color.Palette
-}
-
-func (W _image_draw_Quantizer) Quantize(p color.Palette, m image.Image) color.Palette {
-	return W.WQuantize(p, m)
+func (_w Wrapper) Quantize(p color.Palette, m image.Image) color.Palette {
+	_f := interp.Method("Quantize", _w.Wrap).(func(p color.Palette, m image.Image) color.Palette)
+	return _f(p, m)
 }

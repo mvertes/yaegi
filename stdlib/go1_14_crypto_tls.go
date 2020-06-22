@@ -9,6 +9,8 @@ import (
 	"go/constant"
 	"go/token"
 	"reflect"
+
+	"github.com/containous/yaegi/interp"
 )
 
 func init() {
@@ -99,21 +101,13 @@ func init() {
 		"RecordHeaderError":      reflect.ValueOf((*tls.RecordHeaderError)(nil)),
 		"RenegotiationSupport":   reflect.ValueOf((*tls.RenegotiationSupport)(nil)),
 		"SignatureScheme":        reflect.ValueOf((*tls.SignatureScheme)(nil)),
-
-		// interface wrapper definitions
-		"_ClientSessionCache": reflect.ValueOf((*_crypto_tls_ClientSessionCache)(nil)),
 	}
 }
-
-// _crypto_tls_ClientSessionCache is an interface wrapper for ClientSessionCache type
-type _crypto_tls_ClientSessionCache struct {
-	WGet func(sessionKey string) (session *tls.ClientSessionState, ok bool)
-	WPut func(sessionKey string, cs *tls.ClientSessionState)
+func (_w Wrapper) Get(sessionKey string) (session *tls.ClientSessionState, ok bool) {
+	_f := interp.Method("Get", _w.Wrap).(func(sessionKey string) (session *tls.ClientSessionState, ok bool))
+	return _f(sessionKey)
 }
-
-func (W _crypto_tls_ClientSessionCache) Get(sessionKey string) (session *tls.ClientSessionState, ok bool) {
-	return W.WGet(sessionKey)
-}
-func (W _crypto_tls_ClientSessionCache) Put(sessionKey string, cs *tls.ClientSessionState) {
-	W.WPut(sessionKey, cs)
+func (_w Wrapper) Put(sessionKey string, cs *tls.ClientSessionState) {
+	_f := interp.Method("Put", _w.Wrap).(func(sessionKey string, cs *tls.ClientSessionState))
+	_f(sessionKey, cs)
 }

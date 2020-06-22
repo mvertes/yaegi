@@ -8,6 +8,8 @@ import (
 	"context"
 	"reflect"
 	"time"
+
+	"github.com/containous/yaegi/interp"
 )
 
 func init() {
@@ -25,21 +27,21 @@ func init() {
 		// type definitions
 		"CancelFunc": reflect.ValueOf((*context.CancelFunc)(nil)),
 		"Context":    reflect.ValueOf((*context.Context)(nil)),
-
-		// interface wrapper definitions
-		"_Context": reflect.ValueOf((*_context_Context)(nil)),
 	}
 }
-
-// _context_Context is an interface wrapper for Context type
-type _context_Context struct {
-	WDeadline func() (deadline time.Time, ok bool)
-	WDone     func() <-chan struct{}
-	WErr      func() error
-	WValue    func(key interface{}) interface{}
+func (_w Wrapper) Deadline() (deadline time.Time, ok bool) {
+	_f := interp.Method("Deadline", _w.Wrap).(func() (deadline time.Time, ok bool))
+	return _f()
 }
-
-func (W _context_Context) Deadline() (deadline time.Time, ok bool) { return W.WDeadline() }
-func (W _context_Context) Done() <-chan struct{}                   { return W.WDone() }
-func (W _context_Context) Err() error                              { return W.WErr() }
-func (W _context_Context) Value(key interface{}) interface{}       { return W.WValue(key) }
+func (_w Wrapper) Done() <-chan struct{} {
+	_f := interp.Method("Done", _w.Wrap).(func() <-chan struct{})
+	return _f()
+}
+func (_w Wrapper) Err() error {
+	_f := interp.Method("Err", _w.Wrap).(func() error)
+	return _f()
+}
+func (_w Wrapper) Value(key interface{}) interface{} {
+	_f := interp.Method("Value", _w.Wrap).(func(key interface{}) interface{})
+	return _f(key)
+}

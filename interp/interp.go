@@ -8,6 +8,7 @@ import (
 	"go/scanner"
 	"go/token"
 	"io"
+	"log"
 	"os"
 	"os/signal"
 	"reflect"
@@ -160,7 +161,27 @@ var Symbols = Exports{
 	},
 }
 
+var defaultMethod = map[string]interface{}{
+	"Error": reflect.ValueOf(func() string { return "" }).Interface(),
+}
+
 func init() { Symbols[selfPath]["Symbols"] = reflect.ValueOf(Symbols) }
+
+func Method(name string, v reflect.Value) (r interface{}) {
+	vi := v.Interface().(valueInterface)
+	log.Println("Method", name, v, vi.node.frame)
+	if vi.node != nil {
+		m, i := vi.node.typ.lookupMethod(name)
+		if m == nil {
+			log.Println("vi.value", vi.value)
+			return defaultMethod[name]
+		}
+		nod := *m
+		nod.recv = &receiver{vi.node, vi.value, i}
+		return genFunctionWrapper(&nod)(vi.node.frame).Interface()
+	}
+	return
+}
 
 // _error is a wrapper of error interface type
 type _error struct {
@@ -463,6 +484,13 @@ func (interp *Interpreter) runid() uint64 { return atomic.LoadUint64(&interp.id)
 func (interp *Interpreter) getWrapper(t reflect.Type) reflect.Type {
 	if p, ok := interp.binPkg[t.PkgPath()]; ok {
 		return p["_"+t.Name()].Type().Elem()
+	}
+	return nil
+}
+
+func (interp *Interpreter) wrapperType() reflect.Type {
+	if p, ok := interp.binPkg["wrapper"]; ok {
+		return p["Wrapper"].Type().Elem()
 	}
 	return nil
 }

@@ -22,6 +22,7 @@ cmd/goexports/goexports: cmd/goexports/goexports.go
 	go generate cmd/goexports/goexports.go
 
 generate: gen_all_syscall
+	rm -f /tmp/wrapdef
 	go generate
 
 tests:

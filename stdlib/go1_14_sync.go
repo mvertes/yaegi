@@ -7,6 +7,8 @@ package stdlib
 import (
 	"reflect"
 	"sync"
+
+	"github.com/containous/yaegi/interp"
 )
 
 func init() {
@@ -23,17 +25,13 @@ func init() {
 		"Pool":      reflect.ValueOf((*sync.Pool)(nil)),
 		"RWMutex":   reflect.ValueOf((*sync.RWMutex)(nil)),
 		"WaitGroup": reflect.ValueOf((*sync.WaitGroup)(nil)),
-
-		// interface wrapper definitions
-		"_Locker": reflect.ValueOf((*_sync_Locker)(nil)),
 	}
 }
-
-// _sync_Locker is an interface wrapper for Locker type
-type _sync_Locker struct {
-	WLock   func()
-	WUnlock func()
+func (_w Wrapper) Lock() {
+	_f := interp.Method("Lock", _w.Wrap).(func())
+	_f()
 }
-
-func (W _sync_Locker) Lock()   { W.WLock() }
-func (W _sync_Locker) Unlock() { W.WUnlock() }
+func (_w Wrapper) Unlock() {
+	_f := interp.Method("Unlock", _w.Wrap).(func())
+	_f()
+}

@@ -7,6 +7,8 @@ package stdlib
 import (
 	"go/constant"
 	"reflect"
+
+	"github.com/containous/yaegi/interp"
 )
 
 func init() {
@@ -53,19 +55,13 @@ func init() {
 		// type definitions
 		"Kind":  reflect.ValueOf((*constant.Kind)(nil)),
 		"Value": reflect.ValueOf((*constant.Value)(nil)),
-
-		// interface wrapper definitions
-		"_Value": reflect.ValueOf((*_go_constant_Value)(nil)),
 	}
 }
-
-// _go_constant_Value is an interface wrapper for Value type
-type _go_constant_Value struct {
-	WExactString func() string
-	WKind        func() constant.Kind
-	WString      func() string
+func (_w Wrapper) ExactString() string {
+	_f := interp.Method("ExactString", _w.Wrap).(func() string)
+	return _f()
 }
-
-func (W _go_constant_Value) ExactString() string { return W.WExactString() }
-func (W _go_constant_Value) Kind() constant.Kind { return W.WKind() }
-func (W _go_constant_Value) String() string      { return W.WString() }
+func (_w Wrapper) Kind() constant.Kind {
+	_f := interp.Method("Kind", _w.Wrap).(func() constant.Kind)
+	return _f()
+}

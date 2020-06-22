@@ -8,6 +8,8 @@ import (
 	"image"
 	"image/color"
 	"reflect"
+
+	"github.com/containous/yaegi/interp"
 )
 
 func init() {
@@ -65,33 +67,22 @@ func init() {
 		"Uniform":             reflect.ValueOf((*image.Uniform)(nil)),
 		"YCbCr":               reflect.ValueOf((*image.YCbCr)(nil)),
 		"YCbCrSubsampleRatio": reflect.ValueOf((*image.YCbCrSubsampleRatio)(nil)),
-
-		// interface wrapper definitions
-		"_Image":         reflect.ValueOf((*_image_Image)(nil)),
-		"_PalettedImage": reflect.ValueOf((*_image_PalettedImage)(nil)),
 	}
 }
-
-// _image_Image is an interface wrapper for Image type
-type _image_Image struct {
-	WAt         func(x int, y int) color.Color
-	WBounds     func() image.Rectangle
-	WColorModel func() color.Model
+func (_w Wrapper) At(x int, y int) color.Color {
+	_f := interp.Method("At", _w.Wrap).(func(x int, y int) color.Color)
+	return _f(x, y)
+}
+func (_w Wrapper) Bounds() image.Rectangle {
+	_f := interp.Method("Bounds", _w.Wrap).(func() image.Rectangle)
+	return _f()
+}
+func (_w Wrapper) ColorModel() color.Model {
+	_f := interp.Method("ColorModel", _w.Wrap).(func() color.Model)
+	return _f()
 }
 
-func (W _image_Image) At(x int, y int) color.Color { return W.WAt(x, y) }
-func (W _image_Image) Bounds() image.Rectangle     { return W.WBounds() }
-func (W _image_Image) ColorModel() color.Model     { return W.WColorModel() }
-
-// _image_PalettedImage is an interface wrapper for PalettedImage type
-type _image_PalettedImage struct {
-	WAt           func(x int, y int) color.Color
-	WBounds       func() image.Rectangle
-	WColorIndexAt func(x int, y int) uint8
-	WColorModel   func() color.Model
+func (_w Wrapper) ColorIndexAt(x int, y int) uint8 {
+	_f := interp.Method("ColorIndexAt", _w.Wrap).(func(x int, y int) uint8)
+	return _f(x, y)
 }
-
-func (W _image_PalettedImage) At(x int, y int) color.Color     { return W.WAt(x, y) }
-func (W _image_PalettedImage) Bounds() image.Rectangle         { return W.WBounds() }
-func (W _image_PalettedImage) ColorIndexAt(x int, y int) uint8 { return W.WColorIndexAt(x, y) }
-func (W _image_PalettedImage) ColorModel() color.Model         { return W.WColorModel() }

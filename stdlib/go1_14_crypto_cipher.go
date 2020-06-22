@@ -7,6 +7,8 @@ package stdlib
 import (
 	"crypto/cipher"
 	"reflect"
+
+	"github.com/containous/yaegi/interp"
 )
 
 func init() {
@@ -29,55 +31,40 @@ func init() {
 		"Stream":       reflect.ValueOf((*cipher.Stream)(nil)),
 		"StreamReader": reflect.ValueOf((*cipher.StreamReader)(nil)),
 		"StreamWriter": reflect.ValueOf((*cipher.StreamWriter)(nil)),
-
-		// interface wrapper definitions
-		"_AEAD":      reflect.ValueOf((*_crypto_cipher_AEAD)(nil)),
-		"_Block":     reflect.ValueOf((*_crypto_cipher_Block)(nil)),
-		"_BlockMode": reflect.ValueOf((*_crypto_cipher_BlockMode)(nil)),
-		"_Stream":    reflect.ValueOf((*_crypto_cipher_Stream)(nil)),
 	}
 }
-
-// _crypto_cipher_AEAD is an interface wrapper for AEAD type
-type _crypto_cipher_AEAD struct {
-	WNonceSize func() int
-	WOpen      func(dst []byte, nonce []byte, ciphertext []byte, additionalData []byte) ([]byte, error)
-	WOverhead  func() int
-	WSeal      func(dst []byte, nonce []byte, plaintext []byte, additionalData []byte) []byte
+func (_w Wrapper) NonceSize() int {
+	_f := interp.Method("NonceSize", _w.Wrap).(func() int)
+	return _f()
+}
+func (_w Wrapper) Open(dst []byte, nonce []byte, ciphertext []byte, additionalData []byte) ([]byte, error) {
+	_f := interp.Method("Open", _w.Wrap).(func(dst []byte, nonce []byte, ciphertext []byte, additionalData []byte) ([]byte, error))
+	return _f(dst, nonce, ciphertext, additionalData)
+}
+func (_w Wrapper) Overhead() int {
+	_f := interp.Method("Overhead", _w.Wrap).(func() int)
+	return _f()
+}
+func (_w Wrapper) Seal(dst []byte, nonce []byte, plaintext []byte, additionalData []byte) []byte {
+	_f := interp.Method("Seal", _w.Wrap).(func(dst []byte, nonce []byte, plaintext []byte, additionalData []byte) []byte)
+	return _f(dst, nonce, plaintext, additionalData)
 }
 
-func (W _crypto_cipher_AEAD) NonceSize() int { return W.WNonceSize() }
-func (W _crypto_cipher_AEAD) Open(dst []byte, nonce []byte, ciphertext []byte, additionalData []byte) ([]byte, error) {
-	return W.WOpen(dst, nonce, ciphertext, additionalData)
+func (_w Wrapper) BlockSize() int {
+	_f := interp.Method("BlockSize", _w.Wrap).(func() int)
+	return _f()
 }
-func (W _crypto_cipher_AEAD) Overhead() int { return W.WOverhead() }
-func (W _crypto_cipher_AEAD) Seal(dst []byte, nonce []byte, plaintext []byte, additionalData []byte) []byte {
-	return W.WSeal(dst, nonce, plaintext, additionalData)
-}
-
-// _crypto_cipher_Block is an interface wrapper for Block type
-type _crypto_cipher_Block struct {
-	WBlockSize func() int
-	WDecrypt   func(dst []byte, src []byte)
-	WEncrypt   func(dst []byte, src []byte)
+func (_w Wrapper) Encrypt(dst []byte, src []byte) {
+	_f := interp.Method("Encrypt", _w.Wrap).(func(dst []byte, src []byte))
+	_f(dst, src)
 }
 
-func (W _crypto_cipher_Block) BlockSize() int                 { return W.WBlockSize() }
-func (W _crypto_cipher_Block) Decrypt(dst []byte, src []byte) { W.WDecrypt(dst, src) }
-func (W _crypto_cipher_Block) Encrypt(dst []byte, src []byte) { W.WEncrypt(dst, src) }
-
-// _crypto_cipher_BlockMode is an interface wrapper for BlockMode type
-type _crypto_cipher_BlockMode struct {
-	WBlockSize   func() int
-	WCryptBlocks func(dst []byte, src []byte)
+func (_w Wrapper) CryptBlocks(dst []byte, src []byte) {
+	_f := interp.Method("CryptBlocks", _w.Wrap).(func(dst []byte, src []byte))
+	_f(dst, src)
 }
 
-func (W _crypto_cipher_BlockMode) BlockSize() int                     { return W.WBlockSize() }
-func (W _crypto_cipher_BlockMode) CryptBlocks(dst []byte, src []byte) { W.WCryptBlocks(dst, src) }
-
-// _crypto_cipher_Stream is an interface wrapper for Stream type
-type _crypto_cipher_Stream struct {
-	WXORKeyStream func(dst []byte, src []byte)
+func (_w Wrapper) XORKeyStream(dst []byte, src []byte) {
+	_f := interp.Method("XORKeyStream", _w.Wrap).(func(dst []byte, src []byte))
+	_f(dst, src)
 }
-
-func (W _crypto_cipher_Stream) XORKeyStream(dst []byte, src []byte) { W.WXORKeyStream(dst, src) }

@@ -7,6 +7,8 @@ package stdlib
 import (
 	"debug/macho"
 	"reflect"
+
+	"github.com/containous/yaegi/interp"
 )
 
 func init() {
@@ -142,15 +144,9 @@ func init() {
 		"SymtabCmd":        reflect.ValueOf((*macho.SymtabCmd)(nil)),
 		"Thread":           reflect.ValueOf((*macho.Thread)(nil)),
 		"Type":             reflect.ValueOf((*macho.Type)(nil)),
-
-		// interface wrapper definitions
-		"_Load": reflect.ValueOf((*_debug_macho_Load)(nil)),
 	}
 }
-
-// _debug_macho_Load is an interface wrapper for Load type
-type _debug_macho_Load struct {
-	WRaw func() []byte
+func (_w Wrapper) Raw() []byte {
+	_f := interp.Method("Raw", _w.Wrap).(func() []byte)
+	return _f()
 }
-
-func (W _debug_macho_Load) Raw() []byte { return W.WRaw() }

@@ -8,7 +8,6 @@ import (
 	"compress/zlib"
 	"go/constant"
 	"go/token"
-	"io"
 	"reflect"
 )
 
@@ -32,15 +31,5 @@ func init() {
 		// type definitions
 		"Resetter": reflect.ValueOf((*zlib.Resetter)(nil)),
 		"Writer":   reflect.ValueOf((*zlib.Writer)(nil)),
-
-		// interface wrapper definitions
-		"_Resetter": reflect.ValueOf((*_compress_zlib_Resetter)(nil)),
 	}
 }
-
-// _compress_zlib_Resetter is an interface wrapper for Resetter type
-type _compress_zlib_Resetter struct {
-	WReset func(r io.Reader, dict []byte) error
-}
-
-func (W _compress_zlib_Resetter) Reset(r io.Reader, dict []byte) error { return W.WReset(r, dict) }

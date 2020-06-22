@@ -7,6 +7,8 @@ package stdlib
 import (
 	"reflect"
 	"text/template/parse"
+
+	"github.com/containous/yaegi/interp"
 )
 
 func init() {
@@ -59,21 +61,13 @@ func init() {
 		"Tree":           reflect.ValueOf((*parse.Tree)(nil)),
 		"VariableNode":   reflect.ValueOf((*parse.VariableNode)(nil)),
 		"WithNode":       reflect.ValueOf((*parse.WithNode)(nil)),
-
-		// interface wrapper definitions
-		"_Node": reflect.ValueOf((*_text_template_parse_Node)(nil)),
 	}
 }
-
-// _text_template_parse_Node is an interface wrapper for Node type
-type _text_template_parse_Node struct {
-	WCopy     func() parse.Node
-	WPosition func() parse.Pos
-	WString   func() string
-	WType     func() parse.NodeType
+func (_w Wrapper) Copy() parse.Node {
+	_f := interp.Method("Copy", _w.Wrap).(func() parse.Node)
+	return _f()
 }
-
-func (W _text_template_parse_Node) Copy() parse.Node     { return W.WCopy() }
-func (W _text_template_parse_Node) Position() parse.Pos  { return W.WPosition() }
-func (W _text_template_parse_Node) String() string       { return W.WString() }
-func (W _text_template_parse_Node) Type() parse.NodeType { return W.WType() }
+func (_w Wrapper) Position() parse.Pos {
+	_f := interp.Method("Position", _w.Wrap).(func() parse.Pos)
+	return _f()
+}

@@ -7,6 +7,8 @@ package stdlib
 import (
 	"math/rand"
 	"reflect"
+
+	"github.com/containous/yaegi/interp"
 )
 
 func init() {
@@ -37,29 +39,13 @@ func init() {
 		"Source":   reflect.ValueOf((*rand.Source)(nil)),
 		"Source64": reflect.ValueOf((*rand.Source64)(nil)),
 		"Zipf":     reflect.ValueOf((*rand.Zipf)(nil)),
-
-		// interface wrapper definitions
-		"_Source":   reflect.ValueOf((*_math_rand_Source)(nil)),
-		"_Source64": reflect.ValueOf((*_math_rand_Source64)(nil)),
 	}
 }
-
-// _math_rand_Source is an interface wrapper for Source type
-type _math_rand_Source struct {
-	WInt63 func() int64
-	WSeed  func(seed int64)
+func (_w Wrapper) Int63() int64 {
+	_f := interp.Method("Int63", _w.Wrap).(func() int64)
+	return _f()
 }
-
-func (W _math_rand_Source) Int63() int64    { return W.WInt63() }
-func (W _math_rand_Source) Seed(seed int64) { W.WSeed(seed) }
-
-// _math_rand_Source64 is an interface wrapper for Source64 type
-type _math_rand_Source64 struct {
-	WInt63  func() int64
-	WSeed   func(seed int64)
-	WUint64 func() uint64
+func (_w Wrapper) Seed(seed int64) {
+	_f := interp.Method("Seed", _w.Wrap).(func(seed int64))
+	_f(seed)
 }
-
-func (W _math_rand_Source64) Int63() int64    { return W.WInt63() }
-func (W _math_rand_Source64) Seed(seed int64) { W.WSeed(seed) }
-func (W _math_rand_Source64) Uint64() uint64  { return W.WUint64() }

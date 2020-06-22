@@ -6,6 +6,8 @@ package stdlib
 
 import (
 	"reflect"
+
+	"github.com/containous/yaegi/interp"
 )
 
 func init() {
@@ -83,75 +85,101 @@ func init() {
 		"Type":         reflect.ValueOf((*reflect.Type)(nil)),
 		"Value":        reflect.ValueOf((*reflect.Value)(nil)),
 		"ValueError":   reflect.ValueOf((*reflect.ValueError)(nil)),
-
-		// interface wrapper definitions
-		"_Type": reflect.ValueOf((*_reflect_Type)(nil)),
 	}
 }
-
-// _reflect_Type is an interface wrapper for Type type
-type _reflect_Type struct {
-	WAlign           func() int
-	WAssignableTo    func(u reflect.Type) bool
-	WBits            func() int
-	WChanDir         func() reflect.ChanDir
-	WComparable      func() bool
-	WConvertibleTo   func(u reflect.Type) bool
-	WElem            func() reflect.Type
-	WField           func(i int) reflect.StructField
-	WFieldAlign      func() int
-	WFieldByIndex    func(index []int) reflect.StructField
-	WFieldByName     func(name string) (reflect.StructField, bool)
-	WFieldByNameFunc func(match func(string) bool) (reflect.StructField, bool)
-	WImplements      func(u reflect.Type) bool
-	WIn              func(i int) reflect.Type
-	WIsVariadic      func() bool
-	WKey             func() reflect.Type
-	WKind            func() reflect.Kind
-	WLen             func() int
-	WMethod          func(a0 int) reflect.Method
-	WMethodByName    func(a0 string) (reflect.Method, bool)
-	WName            func() string
-	WNumField        func() int
-	WNumIn           func() int
-	WNumMethod       func() int
-	WNumOut          func() int
-	WOut             func(i int) reflect.Type
-	WPkgPath         func() string
-	WSize            func() uintptr
-	WString          func() string
+func (_w Wrapper) Align() int {
+	_f := interp.Method("Align", _w.Wrap).(func() int)
+	return _f()
 }
-
-func (W _reflect_Type) Align() int                                   { return W.WAlign() }
-func (W _reflect_Type) AssignableTo(u reflect.Type) bool             { return W.WAssignableTo(u) }
-func (W _reflect_Type) Bits() int                                    { return W.WBits() }
-func (W _reflect_Type) ChanDir() reflect.ChanDir                     { return W.WChanDir() }
-func (W _reflect_Type) Comparable() bool                             { return W.WComparable() }
-func (W _reflect_Type) ConvertibleTo(u reflect.Type) bool            { return W.WConvertibleTo(u) }
-func (W _reflect_Type) Elem() reflect.Type                           { return W.WElem() }
-func (W _reflect_Type) Field(i int) reflect.StructField              { return W.WField(i) }
-func (W _reflect_Type) FieldAlign() int                              { return W.WFieldAlign() }
-func (W _reflect_Type) FieldByIndex(index []int) reflect.StructField { return W.WFieldByIndex(index) }
-func (W _reflect_Type) FieldByName(name string) (reflect.StructField, bool) {
-	return W.WFieldByName(name)
+func (_w Wrapper) AssignableTo(u reflect.Type) bool {
+	_f := interp.Method("AssignableTo", _w.Wrap).(func(u reflect.Type) bool)
+	return _f(u)
 }
-func (W _reflect_Type) FieldByNameFunc(match func(string) bool) (reflect.StructField, bool) {
-	return W.WFieldByNameFunc(match)
+func (_w Wrapper) Bits() int {
+	_f := interp.Method("Bits", _w.Wrap).(func() int)
+	return _f()
 }
-func (W _reflect_Type) Implements(u reflect.Type) bool                { return W.WImplements(u) }
-func (W _reflect_Type) In(i int) reflect.Type                         { return W.WIn(i) }
-func (W _reflect_Type) IsVariadic() bool                              { return W.WIsVariadic() }
-func (W _reflect_Type) Key() reflect.Type                             { return W.WKey() }
-func (W _reflect_Type) Kind() reflect.Kind                            { return W.WKind() }
-func (W _reflect_Type) Len() int                                      { return W.WLen() }
-func (W _reflect_Type) Method(a0 int) reflect.Method                  { return W.WMethod(a0) }
-func (W _reflect_Type) MethodByName(a0 string) (reflect.Method, bool) { return W.WMethodByName(a0) }
-func (W _reflect_Type) Name() string                                  { return W.WName() }
-func (W _reflect_Type) NumField() int                                 { return W.WNumField() }
-func (W _reflect_Type) NumIn() int                                    { return W.WNumIn() }
-func (W _reflect_Type) NumMethod() int                                { return W.WNumMethod() }
-func (W _reflect_Type) NumOut() int                                   { return W.WNumOut() }
-func (W _reflect_Type) Out(i int) reflect.Type                        { return W.WOut(i) }
-func (W _reflect_Type) PkgPath() string                               { return W.WPkgPath() }
-func (W _reflect_Type) Size() uintptr                                 { return W.WSize() }
-func (W _reflect_Type) String() string                                { return W.WString() }
+func (_w Wrapper) ChanDir() reflect.ChanDir {
+	_f := interp.Method("ChanDir", _w.Wrap).(func() reflect.ChanDir)
+	return _f()
+}
+func (_w Wrapper) Comparable() bool {
+	_f := interp.Method("Comparable", _w.Wrap).(func() bool)
+	return _f()
+}
+func (_w Wrapper) ConvertibleTo(u reflect.Type) bool {
+	_f := interp.Method("ConvertibleTo", _w.Wrap).(func(u reflect.Type) bool)
+	return _f(u)
+}
+func (_w Wrapper) Elem() reflect.Type {
+	_f := interp.Method("Elem", _w.Wrap).(func() reflect.Type)
+	return _f()
+}
+func (_w Wrapper) Field(i int) reflect.StructField {
+	_f := interp.Method("Field", _w.Wrap).(func(i int) reflect.StructField)
+	return _f(i)
+}
+func (_w Wrapper) FieldAlign() int {
+	_f := interp.Method("FieldAlign", _w.Wrap).(func() int)
+	return _f()
+}
+func (_w Wrapper) FieldByIndex(index []int) reflect.StructField {
+	_f := interp.Method("FieldByIndex", _w.Wrap).(func(index []int) reflect.StructField)
+	return _f(index)
+}
+func (_w Wrapper) FieldByName(name string) (reflect.StructField, bool) {
+	_f := interp.Method("FieldByName", _w.Wrap).(func(name string) (reflect.StructField, bool))
+	return _f(name)
+}
+func (_w Wrapper) FieldByNameFunc(match func(string) bool) (reflect.StructField, bool) {
+	_f := interp.Method("FieldByNameFunc", _w.Wrap).(func(match func(string) bool) (reflect.StructField, bool))
+	return _f(match)
+}
+func (_w Wrapper) Implements(u reflect.Type) bool {
+	_f := interp.Method("Implements", _w.Wrap).(func(u reflect.Type) bool)
+	return _f(u)
+}
+func (_w Wrapper) In(i int) reflect.Type {
+	_f := interp.Method("In", _w.Wrap).(func(i int) reflect.Type)
+	return _f(i)
+}
+func (_w Wrapper) IsVariadic() bool {
+	_f := interp.Method("IsVariadic", _w.Wrap).(func() bool)
+	return _f()
+}
+func (_w Wrapper) Key() reflect.Type {
+	_f := interp.Method("Key", _w.Wrap).(func() reflect.Type)
+	return _f()
+}
+func (_w Wrapper) Method(a0 int) reflect.Method {
+	_f := interp.Method("Method", _w.Wrap).(func(a0 int) reflect.Method)
+	return _f(a0)
+}
+func (_w Wrapper) MethodByName(a0 string) (reflect.Method, bool) {
+	_f := interp.Method("MethodByName", _w.Wrap).(func(a0 string) (reflect.Method, bool))
+	return _f(a0)
+}
+func (_w Wrapper) NumField() int {
+	_f := interp.Method("NumField", _w.Wrap).(func() int)
+	return _f()
+}
+func (_w Wrapper) NumIn() int {
+	_f := interp.Method("NumIn", _w.Wrap).(func() int)
+	return _f()
+}
+func (_w Wrapper) NumMethod() int {
+	_f := interp.Method("NumMethod", _w.Wrap).(func() int)
+	return _f()
+}
+func (_w Wrapper) NumOut() int {
+	_f := interp.Method("NumOut", _w.Wrap).(func() int)
+	return _f()
+}
+func (_w Wrapper) Out(i int) reflect.Type {
+	_f := interp.Method("Out", _w.Wrap).(func(i int) reflect.Type)
+	return _f(i)
+}
+func (_w Wrapper) PkgPath() string {
+	_f := interp.Method("PkgPath", _w.Wrap).(func() string)
+	return _f()
+}
