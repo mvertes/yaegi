@@ -158,8 +158,8 @@ as opposed to the [ast.Node] interface in the Go standard library,
 implemented by specialized types for all the node kinds. The main
 reason is that the tree walk method [ast.Inspect] only permits a
 pre-processing callback, not a post-processing one, required for
-several compiling steps. We were also uncomfortable with storing the
-AST annotations using this pattern. (WDYM?)
+several compiling steps. It also seemed simpler at the time to start
+with this uniform structure, and we ended up sticking with it.
 
 ### Globals and types analysis
 
@@ -174,16 +174,23 @@ or in C in general, where use before declaration is simply forbidden).
 
 Allowing out of order symbols is what permits the code to be scattered
 arbitrarily amongst several files in packages without more constraints.
-It is indeed an important facility to let the programer organize
-her code as she wants. (or "the code" if it's about the package)
+It is indeed an important feature to let the programer organize
+her code as she wants.
 
 This step, implemented in [interp/gta.go], consists in performing a
 tree walk with only a pre-processing callback (no `out` function
-is passed). There are two particularities: the first is that instead
-of failing with an error if an incomplete definition is met, the
-reference to the failing sub-tree is kept for retry.
-Analysis is thus performed iteratively on the problematic sub-trees
-while progress is made. TODO: I do not understand this part.
+is passed). There are two particularities:
+
+The first is the
+multiple-pass iterative walk. Indeed, in a first global pass, instead
+of failing with an error whenever an incomplete definition is met, the
+reference to the failing sub-tree is kept in a list of nodes to be
+retried, and the walk finishes going over the whole tree.
+Then, all the problematic sub-trees are iteratively retried until
+all the nodes have been defined, or as long as there is progress.
+That is, if two subsequent iterations lead to the exact same state,
+it is a hint that progress is not being made and it would result in
+an infinite loop, at which point yaegi just stops with an error.
 
 The second particularity is that despite being in a partial analysis
 step, a full interpretation can still be necessary on an expression
@@ -200,11 +207,17 @@ var a [len(prefix+path) + 2]int
 ```
 
 A paradox is that the compiler needs an interpreter to perform the
-type analysis! In C language it is avoided by the use of a
-[pre-processor]. Here in Go, the specification forces the compiler
-implementor to provide and use early-on the mechanics of constant
-folding optimisation.
-TODO: I do not understand this part, and I am not sure from that sentence what is the approach/state of things in yaegi on that matter.
+type analysis! Indeed, in the example above, `[16]int` (because
+`len(prefix+path) + 2 = 16`) is a specific type in itself, distinct
+from e.g. `[14]int`. Which means that even though we are only at
+the types analysis phase we already must be able to compute the
+`len(prefix+path) + 2` expression. In the C language it is one of the
+roles of the [pre-processor], which means the compiler itself does not
+need to be able to achieve that.
+Here in Go, the specification forces the compiler
+implementor to provide and use early-on the mechanics involved above,
+which is usually called constant folding optimisation. It is therefore
+implemented both within the standard gc, and whithin yaegi.
 The same kind of approach is pushed to its
 paroxysm in the [Zig language] with its [comptime] keyword.
 
@@ -251,7 +264,6 @@ their successor (to be stored in node fields `tnext` and `fnext`).
 An action node has one successor in the general case (shown with a
 green arrow), or two if the action is associated to a conditional
 branch  (green arrow if the test is true, red arrow otherwise).
-TODO: I think it's a bit problematic to say "red arrow otherwise" with the given example, since there is no "else".
 
 The rules to determine the successor of an action node are inherent
 to the properties of its neighbours (ancestors, siblings and
@@ -271,10 +283,10 @@ branch, the node 10. The corresponding implementation is located
 in a [block of 16 lines] in the post-processing CFG callback. Note
 that the same code also performs dead branch elimination and condition
 validity checking.
+At this stage, in terms of Control Flow, our AST example can now be
+seen as a simpler representation, such as the following.
 
 ![figure 4: CFG](ex1_cfg.drawio.svg)
-
-TODO: I do not understand the point of this graph
 
 In our example, the action nodes composing the CFG can do the
 following kind of operations:
