@@ -16,7 +16,7 @@ extends also to other domains, for example [databases], [observability],
 Yaegi is lean and mean, as it delivers in a single package, with
 no external dependency, a complete Go interpreter, compliant with
 the [Go specification]. Lean, but also mean: its code is dense,
-complex, not always idiomatic, and sometime maybe hard to understand.
+complex, not always idiomatic, and sometimes maybe hard to understand.
 
 This document is here to address that. In the following, after
 getting an overview, we look under the hood, explore the internals
@@ -127,7 +127,7 @@ Go grammar rules (i.e. "stmt" for "list of [statements]", "call"
 for "call [expression]", ...). We also recognize the source tokens
 as literal values in leaf locations.
 
-Walking the tree consists to visit the nodes starting from the root
+Walking the tree consists in visiting the nodes starting from the root
 (node 1), in their numbering order (here from 1 to 15): depth first
 (the children before the siblings) and from left to right. At each
 node, a callback `in` is invoked at entry (pre-processing) and a
@@ -158,8 +158,8 @@ as opposed to the [ast.Node] interface in the Go standard library,
 implemented by specialized types for all the node kinds. The main
 reason is that the tree walk method [ast.Inspect] only permits a
 pre-processing callback, not a post-processing one, required for
-several compiling steps. We were also uncomfortable to store the
-AST annotations using this pattern.
+several compiling steps. It also seemed simpler at the time to start
+with this uniform structure, and we ended up sticking with it.
 
 ### Globals and types analysis
 
@@ -174,16 +174,23 @@ or in C in general, where use before declaration is simply forbidden).
 
 Allowing out of order symbols is what permits the code to be scattered
 arbitrarily amongst several files in packages without more constraints.
-It is indeed an important facility to let the programer organize
-its code as she wants.
+It is indeed an important feature to let the programer organize
+her code as she wants.
 
-This step, implemented in [interp/gta.go], consists to perform a
+This step, implemented in [interp/gta.go], consists in performing a
 tree walk with only a pre-processing callback (no `out` function
-is passed). There is two particularities: the first is that instead
-of failing with an error if an incomplete definition is met, the
-reference to the failing sub-tree is kept for retry.
-Analysis is thus performed iteratively on the problematic sub-trees
-while progress is made.
+is passed). There are two particularities:
+
+The first is the
+multiple-pass iterative walk. Indeed, in a first global pass, instead
+of failing with an error whenever an incomplete definition is met, the
+reference to the failing sub-tree is kept in a list of nodes to be
+retried, and the walk finishes going over the whole tree.
+Then, all the problematic sub-trees are iteratively retried until
+all the nodes have been defined, or as long as there is progress.
+That is, if two subsequent iterations lead to the exact same state,
+it is a hint that progress is not being made and it would result in
+an infinite loop, at which point yaegi just stops with an error.
 
 The second particularity is that despite being in a partial analysis
 step, a full interpretation can still be necessary on an expression
@@ -200,10 +207,18 @@ var a [len(prefix+path) + 2]int
 ```
 
 A paradox is that the compiler needs an interpreter to perform the
-type analysis! In C language it is avoided by the use of a
-[pre-processor]. Here in Go, the specification forces the compiler
-implementor to provide and use early-on the mechanics of constant
-folding optimisation. The same kind of approach is pushed to its
+type analysis! Indeed, in the example above, `[16]int` (because
+`len(prefix+path) + 2 = 16`) is a specific type in itself, distinct
+from e.g. `[14]int`. Which means that even though we are only at
+the types analysis phase we already must be able to compute the
+`len(prefix+path) + 2` expression. In the C language it is one of the
+roles of the [pre-processor], which means the compiler itself does not
+need to be able to achieve that.
+Here in Go, the specification forces the compiler
+implementor to provide and use early-on the mechanics involved above,
+which is usually called constant folding optimisation. It is therefore
+implemented both within the standard gc, and whithin yaegi.
+The same kind of approach is pushed to its
 paroxysm in the [Zig language] with its [comptime] keyword.
 
 ### Control-flow graphs
@@ -230,7 +245,7 @@ single pass, multiple kinds of data processing are executed:
 
 The last point is critical for code generation. It consists in the
 production of control-flow graphs. CFGs are usually represented in
-the form of an intermediate representation (IR), which really are
+the form of an intermediate representation (IR), which really is
 a simplified machine independent instruction set, as in the [GCC
 GIMPLE], the [LLVM IR] or the [SSA] form in the Go compiler. In yaegi,
 no IR is produced, only AST annotations are used.
@@ -244,7 +259,7 @@ In the AST, the nodes relevant to the CFG are the *action* nodes
 operation, a function call or a memory operation (assigning a
 variable, accessing an array entry, ...).
 
-Building the CFG consists to identify action nodes and then find
+Building the CFG consists in identifying action nodes and then find
 their successor (to be stored in node fields `tnext` and `fnext`).
 An action node has one successor in the general case (shown with a
 green arrow), or two if the action is associated to a conditional
@@ -268,6 +283,8 @@ branch, the node 10. The corresponding implementation is located
 in a [block of 16 lines] in the post-processing CFG callback. Note
 that the same code also performs dead branch elimination and condition
 validity checking.
+At this stage, in terms of Control Flow, our AST example can now be
+seen as a simpler representation, such as the following.
 
 ![figure 4: CFG](ex1_cfg.drawio.svg)
 
@@ -290,9 +307,9 @@ control-flow graph (remark that `if` statement graphs, although
 appearing cyclic, are not, because the conditional branches are
 mutually exclusives).
 
-This is not just theoritical. For example, forbidding backward jumps
+This is not just theoretical. For example, forbidding backward jumps
 is crucial in the design of the Linux [eBPF verifier], in order to
-let untrusted user provided snippets execute in a kernel system
+let user provided (therefore untrusted) snippets execute in a kernel system
 privileged environment and avoid potentially infinite loops.
 
 ## Code generation
