@@ -304,7 +304,7 @@ control-flow graph (remark that `if` statement graphs, although
 appearing cyclic, are not, because the conditional branches are
 mutually exclusives).
 
-This is not just theoretical. For example, forbidding backward jumps is
+This is not just theoretical. For example, forbidding backward jumps was
 crucial in the design of the Linux [eBPF verifier], in order to let user
 provided (therefore untrusted) snippets execute in a kernel system
 privileged environment and guarantee no infinite loops.
@@ -316,6 +316,8 @@ privileged environment and guarantee no infinite loops.
 ## Code execution
 
 *describe the interpreter virtual machine*
+
+![figure 6: frame](frame1.drawio.svg)
 
 *describe the interactions between the interpreter and the runtime*
 
