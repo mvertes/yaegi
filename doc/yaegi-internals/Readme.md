@@ -374,8 +374,9 @@ a next post:
 - REPL and interactive use
 
 Many thanks to my colleagues at Traefik for their feedbacks, support and
-contributions, to all the wonderful past, present and future
-contributors, and to the whole community of users.
+contributions, to all the wonderful contributors and community of users.
+Continue to follow developments on yaegi at
+[https://github.com/traefik/yaegi](https://github.com/traefik/yaegi).
 
 [plugins.traefik.io]: https://plugins.traefik.io
 [databases]: https://github.com/xo/xo
