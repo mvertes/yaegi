@@ -4,13 +4,13 @@ Or: the anatomy of a Go interpreter.
 
 ## Introduction
 
-Yaegi is an interpreter of the Go language written in Go. We have
-conceived this project in Traefik-Labs initially to provide a simple and
-practical embedded plugin engine for the traefik reverse proxy.  Now,
-more than 200 plugins contributed by the community are listed on the
-public catalog at [plugins.traefik.io]. The use of yaegi extends also to
-other domains, for example [databases], [observability], [container
-security] and many
+Yaegi is an interpreter of the Go language written in Go. This project
+was started in Traefik-Labs initially to provide a simple and practical
+embedded plugin engine for the traefik reverse proxy.  Now, more than
+200 plugins contributed by the community are listed on the public
+catalog at [plugins.traefik.io]. The use of yaegi extends also to other
+domains, for example [databases], [observability], [container security]
+and many
 [others](https://github.com/traefik/yaegi/network/dependents?package_id=UGFja2FnZS0yMjc1NTQ3MjIy).
 
 Yaegi is lean and mean, as it delivers in a single package, with no
@@ -309,34 +309,73 @@ crucial in the design of the Linux [eBPF verifier], in order to let user
 provided (therefore untrusted) snippets execute in a kernel system
 privileged environment and guarantee no infinite loops.
 
-## Code generation
+## Code generation and execution
 
-*explain run closures*
+The compiler implemented in yaegi targets the Go runtime itself, not a
+particular hardware architecture. For each action node in the CFG a
+corresponding closure is generated. The main benefits are:
+- Portability: the generated code runs on any platform where Go is
+  supported.
+- Interoperability: the objects produced by the interpreter are directly
+  usable by the host program in the form of reflect values.
+- The memory management in particular the garbage collector, is provided
+  by the runtime, and applies also to the values created by the
+  interpreter.
+- The support of runtime type safety, slices, maps, channels, goroutines
+  is also provided by the runtime.
 
-## Code execution
+The action templates are located in [interp/run.go] and [interp/op.go].
+Generating closures allows to optimize all the cases where a constant is
+used (an operation involving a constant and a variable is cheaper and
+faster than the same operation involving two variables). It also permits
+to hard-code the control-flow graph, that is to pre-define the next
+instruction to execute and avoid useless branch tests.
 
-*describe the interpreter virtual machine*
+The pseudo architecture targeted by the interpreter is in effect a
+virtual [stack machine] where the memory is represented as slices of Go
+reflect values, as shown in the following figure, and where the
+instructions are represented directly by the set of action nodes (the
+CFG) in the AST.  Those atomic instructions, also called *builtins*, are
+sligthly higher level than a real hardware instruction set, because they
+operate directly on Go interfaces (more precisely their reflect
+representation), hiding a lot of low level processing and subtleties
+provided by the Go runtime.
 
 ![figure 6: frame](frame1.drawio.svg)
 
-*describe the interactions between the interpreter and the runtime*
+The memory management performed by the interpreter consists to create a
+global frame at a new session (the top of the stack), populated with all
+global values (constants, types, variables and functions). At each new
+interpreted function call, a new frame is pushed on the stack,
+containing the values for all the return value, input parameters and
+local variables of the function.
 
-## Some specific challenges
+## Conclusion
 
-What we have described so far is pretty generic and could in fact
-apply to any compiler or interpreter. We focus next on some specific
-points of Go in the context of an interpreter, and how we addressed
-them.
+We have described the general architecture of a Go interpreter, reusing
+the existing Go scanner and parser. We have focused on the semantic
+analysis, which is based on AST annotations, up to the control-flow
+graph and code generation.  This design leads to a consistent and
+concise compiler suitable for an embedded interpreter.  We have also
+provided a succint overview of the virtual stack machine on top of the
+Go runtime, leveraging on the reflection layer provided by the Go
+standard library.
 
+We can now evolve this design to address different target architectures,
+for example a more efficient virtual machine, already in the works.
+
+Some parts of yaegi have not been detailed yet and will be addressed in
+a next post:
 - Integration with pre-compiled packages
-- Arithmethic and logic operators
 - Go Generics
 - Recursive types
 - Interfaces and methods
 - Virtualization and sandboxing
+- REPL and interactive use
 
-## Coming next
-
+Many thanks to my colleagues at Traefik for their feedbacks, support and
+contributions, to all the wonderful past, present and future
+contributors, and to the whole community of users.
 
 [plugins.traefik.io]: https://plugins.traefik.io
 [databases]: https://github.com/xo/xo
@@ -360,6 +399,8 @@ them.
 [eBPF verifier]: https://www.kernel.org/doc/html/latest/bpf/verifier.html
 [interp/gta.go]: https://github.com/traefik/yaegi/blob/master/interp/gta.go
 [interp/cfg.go]: https://github.com/traefik/yaegi/blob/master/interp/cfg.go
+[interp/run.go]: https://github.com/traefik/yaegi/blob/master/interp/run.go
+[interp/op.go]: https://github.com/traefik/yaegi/blob/master/interp/op.go
 [pre-processor]: https://gcc.gnu.org/onlinedocs/cpp/
 [GCC GIMPLE]: https://gcc.gnu.org/onlinedocs/gccint/GIMPLE.html
 [LLVM IR]: https://llvm.org/docs/LangRef.html
@@ -367,3 +408,4 @@ them.
 [block of 16 lines]: https://github.com/traefik/yaegi/blob/8de3add6faf471a807182c7b8198fe863debc9d8/interp/cfg.go#L1608-L1624
 [Zig language]: https://ziglang.org
 [comptime]: https://ziglang.org/documentation/master/#comptime
+[stack machine]: https://en.wikipedia.org/wiki/Stack_machine
